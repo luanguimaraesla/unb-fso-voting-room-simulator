@@ -78,3 +78,19 @@ void enter_in_the_voting_room(int official_id, official_type official){
     exit(1);
   } 
 }
+
+void create_officials(int *pids, int number_of_officials, official_type type){
+  int counter = 0;
+
+  while(counter < number_of_officials){
+    if((*(pids + counter) = fork()) < 0){
+      fprintf(stderr, "Error: forking official.\n");
+    }else if(*(pids + counter) == 0){
+      enter_in_the_voting_room(counter, type);
+      exit(0); 
+    }else{
+      counter++;
+      continue;
+    }
+  }
+}
