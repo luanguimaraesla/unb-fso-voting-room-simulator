@@ -34,15 +34,33 @@ void think(int official_id, official_type official){
   usleep(rand() % 1000000);
 }
 
-void increment_official_counter(void){
+void increment_official_counter(official_type official){
   sem_wait(&(vrctl->check_counter_mutex));
   (vrctl->official_counter)++;
+  
+  if(official == senator) (vrctl->number_of_senators)++;
+  else if(official == alderman) (vrctl->number_of_aldermen)++;
+  else if(official == assemblyman) (vrctl->number_of_assemblymen)++;
+  else{
+    fprintf(stderr, "Error, invalid official_type!\n");
+    exit(1);
+  }
+ 
   sem_post(&(vrctl->check_counter_mutex));
 }
 
-void decrement_official_counter(void){
+void decrement_official_counter(official_type official){
   sem_wait(&(vrctl->check_counter_mutex));
   (vrctl->official_counter)--;
+  
+  if(official == senator) (vrctl->number_of_senators)--;
+  else if(official == alderman) (vrctl->number_of_aldermen)--;
+  else if(official == assemblyman) (vrctl->number_of_assemblymen)--;
+  else{
+    fprintf(stderr, "Error, invalid official_type!\n");
+    exit(1);
+  }
+
   sem_post(&(vrctl->check_counter_mutex));
 }
 
@@ -56,21 +74,23 @@ void enter_in_the_voting_room(int official_id, official_type official){
       else sem_post(&(vrctl->check_counter_mutex));  
     }
     (vrctl->official_counter)++;
+    (vrctl->number_of_senators)++;
     vote(official_id, official);
     (vrctl->official_counter)--;
+    (vrctl->number_of_senators)--;
     sem_post(&(vrctl->check_counter_mutex));  
   }
 
   else if(official == alderman){
-    increment_official_counter();
+    increment_official_counter(official);
     vote(official_id, official);
-    decrement_official_counter();
+    decrement_official_counter(official);
   }
   else if(official == assemblyman){
     sem_wait(&(vrctl->assemblyman_counter));
-    increment_official_counter();
+    increment_official_counter(official);
     vote(official_id, official);
-    decrement_official_counter();
+    decrement_official_counter(official);
     sem_post(&(vrctl->assemblyman_counter)); 
   }
   else{
