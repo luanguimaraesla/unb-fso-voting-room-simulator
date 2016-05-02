@@ -5,9 +5,22 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#ifndef COLOR
+#define COLOR
+
+#define KNRM  "\x1B[0m"           // NORMAL
+#define KRED  "\x1B[31m"          // RED
+#define KGRN  "\x1B[32m"          // GREEN
+#define KYLW  "\x1B[33m"          // YLW
+#define KCYN  "\x1B[36m"          // CYN
+
+#endif
+
 voting_room_controller *vrctl; 
 
 void vote(int official_id, official_type official){
+  // turn green
+  fprintf(stdout, "%s", KGRN);
   if(official == senator)
     fprintf(stdout, "[VOTING] Senator: %d\n", official_id);
   else if(official == alderman)
@@ -18,10 +31,14 @@ void vote(int official_id, official_type official){
     fprintf(stderr, "Error, invalid official_type!\n");
     exit(1);
   }
+  // turn normal
+  fprintf(stdout, "%s", KNRM);
   usleep(rand() % 1000);
 }
 
 void think(int official_id, official_type official){
+  // turn yellow
+  fprintf(stdout, "%s", KYLW);
   if(official == senator)
     fprintf(stdout, "[THINKING] Senator: %d\n", official_id);
   else if(official == alderman)
@@ -32,10 +49,14 @@ void think(int official_id, official_type official){
     fprintf(stderr, "Error, invalid official_type!\n");
     exit(1);
   } 
+  // turn normal
+  fprintf(stdout, "%s", KNRM);
   usleep(rand() % 1000);
 }
 
 void exit_room(int official_id, official_type official){
+  // turn red
+  fprintf(stdout, "%s", KRED);
   if(official == senator)
     fprintf(stdout, "[EXITING] Senator: %d\n", official_id);
   else if(official == alderman)
@@ -46,6 +67,8 @@ void exit_room(int official_id, official_type official){
     fprintf(stderr, "Error, invalid official_type!\n");
     exit(1);
   } 
+  // turn normal
+  fprintf(stdout, "%s", KNRM);
   usleep(rand() % 50);
 }
 
