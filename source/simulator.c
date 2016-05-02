@@ -11,37 +11,6 @@
 
 extern voting_room_controller *vrctl;
 
-typedef struct pthread_create_officials_args {
-  int number_of_officials;
-  int *pids;
-  official_type type;
-} officials_args;
-
-void * thread_create_officials(void *args){
-  officials_args *cast_args = (officials_args *) args;
-  create_officials(cast_args->pids, cast_args->number_of_officials, cast_args->type);
-  pthread_exit(NULL);
-}
-
-officials_args * create_officials_args(int *pids, int number_of_officials, official_type type){
-  officials_args *new = (officials_args *) malloc (sizeof(officials_args));
-  new->pids = pids;
-  new->number_of_officials = number_of_officials;
-  new->type = type;
-
-  return new;
-}
-
-int create_and_set_shared_memory(void){
-  key_t key = rand() % 9000 + 1000;
-  if((shm_id = shmget(ftok("/tmp", key), sizeof(voting_room_controller), IPC_CREAT | 0666)) < 0){
-    fprintf(stderr, "Error: shmget failure!\n");
-    exit(1);
-  }else{
-    vrctl = (voting_room_controller *) shmat (shm_id, NULL, 0);
-  }
-}
-
 int main(){
   int number_of_senators, number_of_aldermen, number_of_assemblymen; // Number of processes
   int *pids_sen, *pids_ald, *pids_ass; // Official's processes PID's
@@ -52,9 +21,9 @@ int main(){
 
   // Random generate for the number of officials
   srand(time(NULL));
-  number_of_senators = rand() % 10 + 1;  
-  number_of_aldermen = rand() % 20 + 1;  
-  number_of_assemblymen = rand() % 15 + 1;
+  number_of_senators = rand() % 5 + 1;  
+  number_of_aldermen = rand() % 7 + 1;  
+  number_of_assemblymen = rand() % 7 + 1;
 
   // Create an array for each official type
   pids_sen = (int *) malloc (sizeof(int) * number_of_senators);
@@ -102,4 +71,29 @@ int main(){
   shmctl(shm_id, IPC_RMID, NULL);
   
   return 0;
+}
+
+void * thread_create_officials(void *args){
+  officials_args *cast_args = (officials_args *) args;
+  create_officials(cast_args->pids, cast_args->number_of_officials, cast_args->type);
+  pthread_exit(NULL);
+}
+
+officials_args * create_officials_args(int *pids, int number_of_officials, official_type type){
+  officials_args *new = (officials_args *) malloc (sizeof(officials_args));
+  new->pids = pids;
+  new->number_of_officials = number_of_officials;
+  new->type = type;
+
+  return new;
+}
+
+int create_and_set_shared_memory(void){
+  key_t key = rand() % 9000 + 1000;
+  if((shm_id = shmget(ftok("/tmp", key), sizeof(voting_room_controller), IPC_CREAT | 0666)) < 0){
+    fprintf(stderr, "Error: shmget failure!\n");
+    exit(1);
+  }else{
+    vrctl = (voting_room_controller *) shmat (shm_id, NULL, 0);
+  }
 }
