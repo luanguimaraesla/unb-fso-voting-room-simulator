@@ -18,6 +18,7 @@ void vote(int official_id, official_type official){
     fprintf(stderr, "Error, invalid official_type!\n");
     exit(1);
   }
+  usleep(rand() % 1000);
 }
 
 void think(int official_id, official_type official){
@@ -31,7 +32,21 @@ void think(int official_id, official_type official){
     fprintf(stderr, "Error, invalid official_type!\n");
     exit(1);
   } 
-  usleep(rand() % 1000000);
+  usleep(rand() % 1000);
+}
+
+void exit_room(int official_id, official_type official){
+  if(official == senator)
+    fprintf(stdout, "[EXITING] Senator: %d\n", official_id);
+  else if(official == alderman)
+    fprintf(stdout, "[EXITING] Alderman: %d\n", official_id);
+  else if(official == assemblyman)
+    fprintf(stdout, "[EXITING] Assemblyman: %d\n", official_id);
+  else{
+    fprintf(stderr, "Error, invalid official_type!\n");
+    exit(1);
+  } 
+  usleep(rand() % 50);
 }
 
 void increment_official_counter(official_type official){
@@ -69,27 +84,39 @@ void enter_in_the_voting_room(int official_id, official_type official){
 
   if(official == senator){
     while(1){
+      // Block the voting room controller's variables access
       sem_wait(&(vrctl->check_counter_mutex));
+      // If there is no officials into the voring room,
+      // the senator can vote, note the mutex still blocked
       if(vrctl->official_counter == 0) break;
+      // Else, unlock the mutex and continue looping
       else sem_post(&(vrctl->check_counter_mutex));  
     }
+    // Increment voting room controller's variables
     (vrctl->official_counter)++;
     (vrctl->number_of_senators)++;
-    vote(official_id, official);
+    
+    vote(official_id, official); // vote
+  
+    // Decrement voting room controller's variables
+    exit_room(official_id, official);
     (vrctl->official_counter)--;
     (vrctl->number_of_senators)--;
+    // Unlock the mutex
     sem_post(&(vrctl->check_counter_mutex));  
   }
 
   else if(official == alderman){
     increment_official_counter(official);
     vote(official_id, official);
+    exit_room(official_id, official);
     decrement_official_counter(official);
   }
   else if(official == assemblyman){
     sem_wait(&(vrctl->assemblyman_counter));
     increment_official_counter(official);
     vote(official_id, official);
+    exit_room(official_id, official);
     decrement_official_counter(official);
     sem_post(&(vrctl->assemblyman_counter)); 
   }
